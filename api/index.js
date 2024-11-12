@@ -7,6 +7,7 @@ const User = require("./models/User");
 
 const PORT = process.env.PORT || 3000;
 const mongoUrl = process.env.MONGODB_URL;
+const jwtSecret = process.env.JWT_SECRET_KEY;
 
 mongoose.connect(mongoUrl);
 
@@ -16,7 +17,11 @@ app.get("/test", (req, res) => {
 
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
-  await User.create({ username, password });
+  const createdUser = await User.create({ username, password });
+  jwt.sign({ userId: createdUser._id }, jwtSecret, (err, token) => {
+    if (err) throw err;
+    res.cookie("token", token).status(201).json("ok");
+  });
 });
 
 app.listen(PORT);
