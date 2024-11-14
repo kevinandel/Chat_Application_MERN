@@ -1,6 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function Chat() {
+  const [ws, setWs] = useState(null);
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:4000");
+    setWs(ws);
+    ws.addEventListener("message", handleMessage);
+  }, []);
+
+  function handleMessage(e) {
+    console.log("new messsage", e);
+  }
+
   return (
     <div className="flex h-screen">
       <div className="bg-gray-100 w-1/3">contacts</div>
@@ -12,7 +23,7 @@ function Chat() {
             placeholder="Type a message"
             className="bg-white border p-2 flex-grow rounded-md"
           />
-          <button className="bg-gray-500 p-2 text-gray-200 rounded-sm">
+          <button className="bg-gray-500 p-2 text-gray-200 rounded-sm hover:bg-gray-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

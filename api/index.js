@@ -8,6 +8,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
+const ws = require("ws");
 
 const PORT = process.env.PORT || 3000;
 const mongoUrl = process.env.MONGODB_URL;
@@ -83,4 +84,27 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.listen(PORT);
+const server = app.listen(PORT);
+
+const wss = new ws.WebSocketServer({ server });
+wss.on("connection", (connection, req) => {
+  const cookies = req.headers.cookie;
+  if (cookies) {
+    const tokenCookieString = cookies
+      .split(";")
+      .find((str) => str.startsWith("token="));
+    if (tokenCookieString) {
+      const token = tokenCookieString.split("=")[1];
+      if (token) {
+        jwt.verify(token, jwtSecret, {}, (err, userData) => {
+          if (err) throw err;
+          const { userId, username } = userData;
+          connection.userId = userId;
+          connection.username = username;
+        });
+      } else {
+        res.status(401).json("no token");
+      }
+    }
+  }
+});
