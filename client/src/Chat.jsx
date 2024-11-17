@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { UserContext } from "./UserContext";
@@ -11,6 +11,7 @@ function Chat() {
   const [newMessageText, setNewMessageText] = useState("");
   const [messages, setMessages] = useState([]);
   const { username, id } = useContext(UserContext);
+  const divUnderMessages = useRef();
 
   const PORT = import.meta.env.VITE_PORT;
 
@@ -57,6 +58,13 @@ function Chat() {
       },
     ]);
   }
+
+  useEffect(() => {
+    const div = divUnderMessages.current;
+    if (div) {
+      div.scrollIntoView({ behaviour: "smooth" });
+    }
+  }, [messages]);
 
   const onlinePeopleExclOurUser = { ...onlinePeople };
   delete onlinePeopleExclOurUser[id];
@@ -110,23 +118,28 @@ function Chat() {
             </div>
           )}
           {!!selectedUserId && (
-            <div className="overflow-y-scroll">
-              {messagesWithoutDupes.map((message, index) => (
-                <div
-                  key={index}
-                  className={message.sender === id ? "text-right" : "text-left"}
-                >
+            <div className="relative h-full mb-2">
+              <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
+                {messagesWithoutDupes.map((message, index) => (
                   <div
-                    className={`max-w-sm text-left inline-block p-2 my-2 rounded-lg text-sm ${
-                      message.sender === id
-                        ? "bg-gray-400 text-white"
-                        : "bg-gray-200"
-                    }`}
+                    key={index}
+                    className={
+                      message.sender === id ? "text-right" : "text-left"
+                    }
                   >
-                    {message.text}
+                    <div
+                      className={`max-w-sm text-left inline-block p-2 my-2 rounded-lg text-sm ${
+                        message.sender === id
+                          ? "bg-gray-400 text-white"
+                          : "bg-gray-200"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+                <div ref={divUnderMessages}></div>
+              </div>
             </div>
           )}
         </div>
