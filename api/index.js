@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const mongoose = require("mongoose");
 const User = require("./models/User");
+const Message = require("./models/Message");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -107,6 +108,45 @@ wss.on("connection", (connection, req) => {
       }
     }
   }
+
+  connection.on("message", async (message) => {
+    const messageData = JSON.parse(message.toString());
+    const { recipient, text } = messageData;
+    if (recipient && text) {
+      const messageDoc = await Message.create({
+        sender: connection.userId,
+        recipient,
+        text,
+      });
+      [...wss.clients]
+        .filter((c) => c.userId === recipient)
+        .forEach((c) =>
+          c.send(
+            JSON.stringify({
+              text,
+              sender: connection.userId,
+              recipient,
+              id: messageDoc._id,
+            })
+          )
+        );
+    }
+  });
+
+  // Example:
+  // User A (Alice) Logs In:
+
+  // Alice's details (userId: 'userA', username: 'Alice') are added to the WebSocket connection.
+
+  // The server sends a list to all clients, including Alice's details.
+
+  // User B (Bob) Logs In:
+
+  // Bob's details (userId: 'userB', username: 'Bob') are added to the WebSocket connection.
+
+  // The server sends a list to all clients, including both Alice's and Bob's details.
+
+  // This ensures that every connected user is aware of the presence of other users and their details, fostering real-time updates and interactions.
 
   [...wss.clients].forEach((client) => {
     client.send(
