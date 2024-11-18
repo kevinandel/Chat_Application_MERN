@@ -173,6 +173,8 @@ wss.on("connection", (connection, req) => {
 
   // This ensures that every connected user is aware of the presence of other users and their details, fostering real-time updates and interactions.
 
+
+  //notify everyone about online people when someone connects
   [...wss.clients].forEach((client) => {
     client.send(
       JSON.stringify({
