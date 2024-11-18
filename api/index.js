@@ -52,7 +52,7 @@ app.get("/messages/:userId", async (req, res) => {
   const messages = await Message.find({
     sender: { $in: [userId, ourUserId] },
     recipient: { $in: [userId, ourUserId] },
-  }).sort({ createdAt: -1 });
+  }).sort({ createdAt: 1 });
   res.json(messages);
 });
 
@@ -151,7 +151,7 @@ wss.on("connection", (connection, req) => {
               text,
               sender: connection.userId,
               recipient,
-              id: messageDoc._id,
+              _id: messageDoc._id,
             })
           )
         );
@@ -172,7 +172,6 @@ wss.on("connection", (connection, req) => {
   // The server sends a list to all clients, including both Alice's and Bob's details.
 
   // This ensures that every connected user is aware of the presence of other users and their details, fostering real-time updates and interactions.
-
 
   //notify everyone about online people when someone connects
   [...wss.clients].forEach((client) => {
