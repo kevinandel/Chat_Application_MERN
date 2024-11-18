@@ -107,7 +107,11 @@ function Chat() {
               <div className="w-1 h-12 bg-gray-500 rounded-r-md"></div>
             )}
             <div className="flex items-center gap-2 py-2 pl-4">
-              <Avatar username={onlinePeople[userId]} userId={userId} />
+              <Avatar
+                online={true}
+                username={onlinePeople[userId]}
+                userId={userId}
+              />
               <span className="text-gray-800">{onlinePeople[userId]}</span>
             </div>
           </div>
