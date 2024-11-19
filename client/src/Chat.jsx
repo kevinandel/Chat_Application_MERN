@@ -44,40 +44,60 @@ function Chat() {
 
   function handleMessage(e) {
     const messageData = JSON.parse(e.data);
-    console.log({ e, messageData });
     if ("online" in messageData) {
       showOnlinePeople(messageData.online);
     } else if ("text" in messageData) {
-      setMessages((prev) => [...prev, { ...messageData }]);
+      if (messageData.sender === selectedUserId) {
+        setMessages((prev) => [...prev, { ...messageData }]);
+      }
     }
   }
 
   function logout() {
     axios.post("/logout").then(() => {
-      setWs(null)
+      setWs(null);
       setId(null);
       setUsername(null);
     });
   }
 
-  function sendMessage(e) {
-    e.preventDefault();
+  function sendMessage(e, file = null) {
+    if (e) e.preventDefault();
     ws.send(
       JSON.stringify({
         recipient: selectedUserId,
         text: newMessageText,
+        file,
       })
     );
-    setNewMessageText("");
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: id,
-        recipient: selectedUserId,
-        text: newMessageText,
-        _id: Date.now(),
-      },
-    ]);
+
+    if (file) {
+      axios.get(`/messages/${selectedUserId}`).then((res) => {
+        setMessages(res.data);
+      });
+    } else {
+      setNewMessageText("");
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: id,
+          recipient: selectedUserId,
+          text: newMessageText,
+          _id: Date.now(),
+        },
+      ]);
+    }
+  }
+
+  function sendFile(e) {
+    const reader = new FileReader();
+    reader.readAsDataURL(e.target.files[0]);
+    reader.onload = () => {
+      sendMessage(null, {
+        name: e.target.files[0].name,
+        data: reader.result,
+      });
+    };
   }
 
   useEffect(() => {
@@ -155,7 +175,7 @@ function Chat() {
                 d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
               />
             </svg>
-            <strong className="text-gray-800">{username}</strong>
+            <strong className="text-gray-600">{username}</strong>
           </span>
           <button
             onClick={logout}
@@ -206,6 +226,35 @@ function Chat() {
                       }`}
                     >
                       {message.text}
+                      {message.file && (
+                        <div>
+                          <a
+                            target="_blank"
+                            className="cursor-pointer flex items-center gap-1 border-b border-gray-700"
+                            href={
+                              axios.defaults.baseURL +
+                              "/uploads/" +
+                              message.file
+                            }
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                              className="size-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"
+                              />
+                            </svg>
+                            {message.file}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -223,6 +272,23 @@ function Chat() {
               placeholder="Type a message"
               className="bg-white border p-2 flex-grow rounded-md"
             />
+            <label className="bg-gray-400 p-2 text-gray-600 rounded-sm hover:bg-gray-500 cursor-pointer">
+              <input type="file" className="hidden" onChange={sendFile} />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"
+                />
+              </svg>
+            </label>
             <button
               type="submit"
               className="bg-gray-500 p-2 text-gray-200 rounded-sm hover:bg-gray-600"

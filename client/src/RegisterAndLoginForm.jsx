@@ -5,7 +5,7 @@ import { UserContext } from "./UserContext.jsx";
 function RegisterAndLoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoginOrRegister, setIsLoginOrRegister] = useState("register");
+  const [isLoginOrRegister, setIsLoginOrRegister] = useState("login");
   const { setUsername: setLoggedInUsername, setId } = useContext(UserContext);
 
   async function handleSubmit(e) {
@@ -40,7 +40,7 @@ function RegisterAndLoginForm() {
           <div className="text-center mt-2">
             Already a member?
             <button
-              className="text-blue-700"
+              className="text-gray-400"
               onClick={() => setIsLoginOrRegister("login")}
             >
               Login here
@@ -51,7 +51,7 @@ function RegisterAndLoginForm() {
           <div className="text-center mt-2">
             Dont have an account?
             <button
-              className="text-blue-700"
+              className="text-gray-400"
               onClick={() => setIsLoginOrRegister("register")}
             >
               Register
